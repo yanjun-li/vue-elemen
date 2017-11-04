@@ -1,5 +1,5 @@
 <template>
-  <div class="chart-wrap">
+  <div class="main">
     <P>{{msg}}</p>
   </div>
 </template>

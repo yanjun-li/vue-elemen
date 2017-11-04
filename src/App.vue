@@ -1,10 +1,13 @@
 <template>
   <div id="app">
-    <aside class="sider">
-      <sider></sider>
-    </aside>
-    <main></main>
-    <router-view/>
+    <el-container>
+      <el-aside width="300px">
+        <sider></sider>
+      </el-aside>
+      <el-main>
+
+      </el-main>
+    </el-container>
   </div>
 </template>
 
@@ -19,13 +22,30 @@ export default {
 </script>
 
 <style>
+html{
+  font-size:10px;
+  width:100%;
+  height:100%;
+}
+body{
+  margin:0;
+  width:100%;
+  height:100%;
+}
 #app {
+  width:100%;
+  height:100%;
+
   font-family: '微软雅黑','Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
-}
 
+  // padding-left:30rem;
+}
+.el-container{
+  width:100%;
+  height:100%;
+}
 </style>

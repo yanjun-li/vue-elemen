@@ -16,7 +16,8 @@
   "dependencies": {
     "axios": "^0.17.0",
     "echarts": "^3.7.2",
-    "element-ui": "^1.4.8",
+    "mockjs": "^1.0.1-beta3",
+    "element-ui":"^2.0.1",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"
   },
