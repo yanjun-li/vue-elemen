@@ -5,7 +5,8 @@
         <sider></sider>
       </el-aside>
       <el-main>
-
+        <graph></graph>
+        <map-chart></map-chart>
       </el-main>
     </el-container>
   </div>
@@ -13,30 +14,34 @@
 
 <script>
 import Sider from './components/Sider'
+import MapChart from './components/MapChart'
+import Graph from './components/Graph'
 export default {
   name: 'app',
   components: {
-    'sider': Sider
+    'sider': Sider,
+    'map-chart': MapChart,
+    'graph': Graph
   }
 }
 </script>
 
 <style>
-html{
-  font-size:10px;
-  width:100%;
-  height:100%;
+html {
+  font-size: 10px;
+  width: 100%;
+  height: 100%;
 }
-body{
-  margin:0;
-  width:100%;
-  height:100%;
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
 }
 #app {
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 
-  font-family: '微软雅黑','Avenir', Helvetica, Arial, sans-serif;
+  font-family: '微软雅黑', 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
@@ -44,8 +49,14 @@ body{
 
   // padding-left:30rem;
 }
-.el-container{
-  width:100%;
-  height:100%;
+.el-container {
+  width: 100%;
+  height: 100%;
+}
+#graph {
+  float: left;
+}
+#map-chart {
+  float: right;
 }
 </style>

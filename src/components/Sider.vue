@@ -1,46 +1,60 @@
 <template>
   <aside class="sider">
     <el-tabs type="border-card">
-      <el-tab-pane label="用水量">用水量</el-tab-pane>
-      <el-tab-pane label="用水量指标">用水量指标</el-tab-pane>
+      <el-tab-pane label="用水量">
+        <el-form :label-position="labelPosition" label-width="85px" :model="formLabelAlign" size="mini">
+          <el-form-item label="用水量">
+            <el-cascader expand-trigger="hover" :options="options" v-model="selectedOptions" @change="handleChange">
+            </el-cascader>
+          </el-form-item>
+          <el-form-item label="开始年份">
+            <el-date-picker v-model="form.startYear" type="year" placeholder="选择年" value-format="yyyy">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="结束年份">
+            <el-date-picker v-model="form.endYear" type="year" placeholder="选择年" value-format="yyyy">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
+            <el-button @click="resetForm('ruleForm')">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+      <el-tab-pane label="用水量指标">
+        <el-form :label-position="labelPosition" label-width="85px" :model="formLabelAlign" size="mini">
+          <el-form-item label="用水量指标">
+            <el-cascader expand-trigger="hover" :options="zbOptions" v-model="zbSelectedOptions" @change="handleChange">
+            </el-cascader>
+          </el-form-item>
+          <el-form-item label="开始年份">
+            <el-date-picker v-model="form.stratYear" type="year" placeholder="选择年" value-format="yyyy">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="结束年份">
+            <el-date-picker v-model="form.endYear" type="year" placeholder="选择年" value-format="yyyy">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="submitZBForm('ruleForm')">立即创建</el-button>
+            <el-button @click="resetForm('ruleForm')">重置</el-button>
+          </el-form-item>
+        </el-form>
+        <el-radio-group v-model="radio" size="mini" @change="changeMap(radio)">
+          <el-radio-button label="citizen">居民生活</el-radio-button>
+          <el-radio-button label="public">城镇公共</el-radio-button>
+          <el-radio-button label="city">城市综合</el-radio-button>
+          <el-radio-button label="threeRatio">三产系数</el-radio-button>
+          <el-radio-button label="industry">工业用地</el-radio-button>
+        </el-radio-group>
+      </el-tab-pane>
     </el-tabs>
-    <el-form :label-position="labelPosition" label-width="80px" :model="formLabelAlign" size="mini">
-      <el-form-item label="数据类型">
-        <el-select v-model="form.type" placeholder="请选择数据类型">
-          <el-option label="用水量" value="water"></el-option>
-          <el-option label="用水量指标" value="waterIndex"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="用水量">
-        <el-cascader expand-trigger="hover" :options="options" v-model="selectedOptions" @change="handleChange">
-        </el-cascader>
-      </el-form-item>
-      <el-form-item label="用水量指标">
-        <el-cascader expand-trigger="hover" :options="zbOptions" v-model="zbSelectedOptions" @change="handleChange">
-        </el-cascader>
-      </el-form-item>
-      <el-form-item label="活动形式">
-        <el-input v-model="formLabelAlign.type"></el-input>
-      </el-form-item>
-      <el-form-item label="开始年份">
-        <el-date-picker v-model="form.stratYear" type="year" placeholder="选择年" end-placeholder="结束年份">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item label="结束年份">
-        <el-date-picker v-model="form.endYear" type="year" placeholder="选择年">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
-        <el-button @click="resetForm('ruleForm')">重置</el-button>
-      </el-form-item>
-    </el-form>
   </aside>
 </template>
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       labelPosition: 'right',
       formLabelAlign: {
@@ -54,6 +68,7 @@ export default {
         startYear: '',
         endYear: ''
       },
+      radio: '',
       selectedOptions: [],
       options: [
         {
@@ -223,9 +238,18 @@ export default {
     }
   },
   methods: {
-    submitForm () {},
-    handleChange (value) {
+    submitForm() {
+      this.$root.bus.$emit('changeGraph', { area: this.selectedOptions[0], chartType: this.selectedOptions[1], range: [Number.parseInt(this.form.startYear), Number.parseInt(this.form.endYear)] })
+    },
+    submitZBForm() {
+      this.$root.bus.$emit('changeGraph', this.selectedOptions, this.form.startYear, this.form.endYear)
+    },
+    handleChange(value) {
       console.log(value)
+    },
+    changeMap(value) {
+      console.log(value)
+      this.$root.bus.$emit('changeMap', this.radio)
     }
   }
 }
@@ -240,5 +264,9 @@ export default {
 }
 .sider .form {
   // padding-right:10px;
+}
+.sider .el-tabs {
+  height: 100%;
+  overflow: hidden;
 }
 </style>
