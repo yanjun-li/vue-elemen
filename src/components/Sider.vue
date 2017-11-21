@@ -2,17 +2,32 @@
   <aside class="sider">
     <el-tabs type="border-card">
       <el-tab-pane label="用水量">
-        <el-form :label-position="labelPosition" label-width="85px" :model="formLabelAlign" size="mini">
+        <el-form :label-position="labelPosition" label-width="85px" :model="waterForm" size="mini">
           <el-form-item label="用水量">
             <el-cascader expand-trigger="hover" :options="options" v-model="selectedOptions" @change="handleChange">
             </el-cascader>
           </el-form-item>
+          <el-form-item label="图表类型">
+            <el-radio v-model="waterForm.radio" label="line">折线趋势图</el-radio>
+            <el-radio v-model="waterForm.radio" label="bar">柱状对比图</el-radio>
+          </el-form-item>
+          <el-form-item label="图表主题">
+            <el-button type="text" @click="waterDialogVisible = true">选择类型</el-button>
+
+            <el-dialog title="图表主题选择" :visible.sync="waterDialogVisible">
+              <mulit-select-tab></mulit-select-tab>
+              <div slot="footer" class="dialog-footer">
+                <el-button @click="waterDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="waterDialogVisible = false">确 定</el-button>
+              </div>
+            </el-dialog>
+          </el-form-item>
           <el-form-item label="开始年份">
-            <el-date-picker v-model="form.startYear" type="year" placeholder="选择年" value-format="yyyy">
+            <el-date-picker v-model="waterForm.startYear" type="year" placeholder="选择年" value-format="yyyy">
             </el-date-picker>
           </el-form-item>
           <el-form-item label="结束年份">
-            <el-date-picker v-model="form.endYear" type="year" placeholder="选择年" value-format="yyyy">
+            <el-date-picker v-model="waterForm.endYear" type="year" placeholder="选择年" value-format="yyyy">
             </el-date-picker>
           </el-form-item>
           <el-form-item>
@@ -22,17 +37,21 @@
         </el-form>
       </el-tab-pane>
       <el-tab-pane label="用水量指标">
-        <el-form :label-position="labelPosition" label-width="85px" :model="formLabelAlign" size="mini">
+        <el-form :label-position="labelPosition" label-width="85px" :model="waterIndicatorForm" size="mini">
           <el-form-item label="用水量指标">
             <el-cascader expand-trigger="hover" :options="zbOptions" v-model="zbSelectedOptions" @change="handleChange">
             </el-cascader>
           </el-form-item>
+          <el-form-item label="图表类型">
+            <el-radio v-model="waterIndicatorForm.radio" label="line">折线趋势图</el-radio>
+            <el-radio v-model="waterIndicatorForm.radio" label="bar">柱状对比图</el-radio>
+          </el-form-item>
           <el-form-item label="开始年份">
-            <el-date-picker v-model="form.stratYear" type="year" placeholder="选择年" value-format="yyyy">
+            <el-date-picker v-model="waterIndicatorForm.stratYear" type="year" placeholder="选择年" value-format="yyyy">
             </el-date-picker>
           </el-form-item>
           <el-form-item label="结束年份">
-            <el-date-picker v-model="form.endYear" type="year" placeholder="选择年" value-format="yyyy">
+            <el-date-picker v-model="waterIndicatorForm.endYear" type="year" placeholder="选择年" value-format="yyyy">
             </el-date-picker>
           </el-form-item>
           <el-form-item>
@@ -40,7 +59,7 @@
             <el-button @click="resetForm('ruleForm')">重置</el-button>
           </el-form-item>
         </el-form>
-        <el-radio-group v-model="radio" size="mini" @change="changeMap(radio)">
+        <el-radio-group v-model="waterIndicatorForm.mapRadio" size="mini" @change="changeMap(waterIndicatorForm.mapRadio)">
           <el-radio-button label="citizen">居民生活</el-radio-button>
           <el-radio-button label="public">城镇公共</el-radio-button>
           <el-radio-button label="city">城市综合</el-radio-button>
@@ -53,22 +72,26 @@
 </template>
 
 <script>
+import MulitSelectTab from './MulitSelectTab'
 export default {
+  components: {
+    'mulit-select-tab': MulitSelectTab
+  },
   data() {
     return {
       labelPosition: 'right',
-      formLabelAlign: {
-        name: '',
-        region: '',
-        type: ''
-      },
-      form: {
-        type: '',
-        year: '',
+      waterForm: {
+        radio: 'line',
         startYear: '',
         endYear: ''
       },
-      radio: '',
+      waterDialogVisible: false,
+      waterIndicatorForm: {
+        radio: 'line',
+        mapRadio: '',
+        startYear: '',
+        endYear: ''
+      },
       selectedOptions: [],
       options: [
         {

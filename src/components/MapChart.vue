@@ -6,7 +6,6 @@
 <script>
 import echarts from 'echarts'
 import { getMapData } from '../api/mapData'
-import { getCrosData } from '../api/testData'
 import { extract } from '../utils/extract'
 import { getMapChartOpt } from '../utils/chart'
 import { range } from '../utils/map'
@@ -26,9 +25,6 @@ export default {
     this.$root.bus.$on('changeMap', (value) => {
       let type = value
       this.changeMap(type)
-    })
-    getCrosData().then((data) => {
-      console.log(data)
     })
   },
   // 在组件销毁时别忘了解除事件绑定

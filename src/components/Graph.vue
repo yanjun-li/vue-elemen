@@ -5,8 +5,8 @@
 
 <script>
 import echarts from 'echarts'
-import { getLineData } from '../api/lineData'
 import { getBarData } from '../api/barData'
+import { getDailyWater } from '../api/testData'
 import { getBarChartOpt, getYearRange } from '../utils/chart'
 
 export default {
@@ -35,14 +35,31 @@ export default {
   methods: {
     drawGraph() {
       let dataType = 'sh'
+      let [start, end] = ['2000', '2010']
       // 基于准备好的dom，初始化echarts实例
       let graph = echarts.init(document.getElementById('graph'))
       this.chart = graph
-      let range = getYearRange(2012, 2015)
-      getLineData(dataType).then(responese => {
+      // let range = getYearRange(2012, 2015)
+      getDailyWater(dataType, start, end).then(responese => {
         let data = responese.data
-        console.log(data)
-        let [maxUse, avgSupply, avgUse, industryUse, cityUse, citizenUse] = data
+        // console.log(data)
+        function extract(data) {
+          let obj = {}
+          data.forEach(item => {
+            Object.keys(item).forEach(key => {
+              let value = item[key] === null ? '-' : item[key]
+              if (obj.hasOwnProperty(key)) {
+                obj[key].push(value)
+              } else {
+                obj[key] = [value]
+              }
+            })
+          })
+          return obj
+        }
+        let obj = extract(data)
+        console.log(obj)
+        let { maxUse, avgSupply, avgUse, avgIndustryUse, avgCityUse, avgCitizenUse, time: range } = obj
         // 绘制图表
         graph.setOption({
           backgroundColor: '#404a59',
@@ -57,6 +74,21 @@ export default {
           },
           grid: {
             bottom: '15%'
+          },
+          toolbox: {
+            show: true,
+            feature: {
+              dataView: {
+                show: false,
+                readOnly: true
+              },
+              restore: {
+                show: true
+              },
+              saveAsImage: {
+                show: true
+              }
+            }
           },
           legend: {
             data: [
@@ -106,15 +138,15 @@ export default {
             }, {
               name: '日均工业用水水量',
               type: 'line',
-              data: industryUse
+              data: avgIndustryUse
             }, {
               name: '日均城镇公共用水量',
               type: 'line',
-              data: cityUse
+              data: avgCityUse
             }, {
               name: '日均居民生活用水量',
               type: 'line',
-              data: citizenUse
+              data: avgCitizenUse
             }
           ]
         })

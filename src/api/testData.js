@@ -1,16 +1,21 @@
 import fetch from '../utils/fetch'
 
-function getCrosData() {
+function getDailyWater(area, start, end) {
   return fetch({
     url: `patrolhandler.do`,
     method: 'post',
     params: {
-      provider: 'MMShareBLL.DAL.login',
-      method: 'getWater'
+      provider: 'MMShareBLL.DAL.waterData',
+      method: 'getDailyWater'
+    },
+    data: {
+      areaType: area,
+      startTime: start,
+      endTime: end
     }
   })
 }
 
 export {
-  getCrosData
+  getDailyWater
 }
