@@ -1,119 +1,186 @@
 <template>
   <div class="muti-select-tab">
-    <div v-for="tab in selectTabs" :key="tab.label" class="selector-panel">
-      <ol>
-        <li class="selector-item" :class="{selected:isSelected}" v-for="option in tab.option" :key="option.label" @click="setSelect($event)">{{option.label}}</li>
-      </ol>
-    </div>
-    <i class="el-icon-arrow-right to-result"></i>
-    <div class="selector-panel selector-result">
-      <ol>
-        <li v-for="option in result" :key="option.label" class="selector-item">{{option.label}}</li>
-      </ol>
-    </div>
+    <MulitSelectPanel :option="option"
+      :selectedIndex.sync="selectedIndexes.first"
+      @selectChange="setFirstSeletion"
+      level="first" />
+    <MulitSelectPanel :option="option[firstTypeIndex].children"
+      :selectedIndex.sync="selectedIndexes.second"
+      level="second" />
+    <SelectorPanelMulti :option="lv3Option[secondTypeIndex]"
+      @waterTypeChange="getWaterTypes" />
+    <el-button type="primary"
+      icon="el-icon-arrow-right"
+      @click="sendToResult"
+      round
+      :disabled="cannotSend"></el-button>
+    <!-- <i class="el-icon-arrow-right to-result"></i> -->
+    <SelectorPanelResult :option="result" />
   </div>
 </template>
 
 <script>
+import MulitSelectPanel from './MulitSelectPanel'
+import SelectorPanelMulti from './SelectorPanelMulti'
+import SelectorPanelResult from './SelectorPanelResult'
+
 export default {
+  components: {
+    MulitSelectPanel,
+    SelectorPanelMulti,
+    SelectorPanelResult
+  },
   data() {
     return {
-      isSelected: false,
-      selectTabs: [
+      selectedIndexes: {
+        first: -1,
+        second: -1
+      },
+      option: [
         {
           label: '全市',
-          option: [
+          value: 'sh',
+          children: [
             {
-              label: '全市',
-              value: 'sh'
-            }, {
-              label: '供水分区',
-              value: 'gsfq'
-            }, {
-              label: '行政区',
-              value: 'xzq'
+              label: '上海',
+              value: '上海'
             }
           ]
         }, {
           label: '供水分区',
-          option: [
+          value: 'gsfq',
+          children: [
             {
-              label: '全市',
-              value: 'sh'
+              label: '市属区域',
+              value: '市属区域'
             }, {
-              label: '供水分区',
-              value: 'gsfq'
-            }, {
-              label: '行政区',
-              value: 'xzq'
+              label: '郊区',
+              value: '郊区'
             }
           ]
         }, {
           label: '行政区',
-          option: [
-            {
-              label: '全市',
-              value: 'sh'
-            }, {
-              label: '供水分区',
-              value: 'gsfq'
-            }, {
-              label: '行政区',
-              value: 'xzq'
-            }
+          value: 'xzq',
+          children: [
+            { label: '宝山区', value: '宝山区' },
+            { label: '崇明区', value: '崇明区' },
+            { label: '奉贤区', value: '奉贤区' },
+            { label: '嘉定区', value: '嘉定区' },
+            { label: '金山区', value: '金山区' },
+            { label: '闵行区', value: '闵行区' },
+            { label: '浦东北片', value: '浦东北片' },
+            { label: '浦东南片', value: '浦东南片' },
+            { label: '浦西中心城北四区', value: '浦西中心城北四区' },
+            { label: '浦西中心城南四区', value: '浦西中心城南四区' },
+            { label: '青浦区', value: '青浦区' },
+            { label: '松江区', value: '松江区' }
           ]
         }
       ],
-      result: [
-        {
-          label: '全市',
-          value: 'sh'
-        }, {
-          label: '供水分区',
-          value: 'gsfq'
-        }, {
-          label: '行政区',
-          value: 'xzq'
-        }
-      ]
+      lv3Option: [
+        [
+          {
+            label: '最高日供水量',
+            value: 'maxUse'
+          }, {
+            label: '日均供水量',
+            value: 'avgSupply'
+          }, {
+            label: '日均用水水量',
+            value: 'avgUse'
+          }, {
+            label: '日均工业用水水量',
+            value: 'avgIndustryUse'
+          }, {
+            label: '日均城镇公共用水量',
+            value: 'avgCityUse'
+          }, {
+            label: '日均居民生活用水量',
+            value: 'avgCitizenUse'
+          }
+        ], [
+          {
+            label: '日均供水量',
+            value: 'avgSupply'
+          }, {
+            label: '日均用水水量',
+            value: 'avgUse'
+          }, {
+            label: '日均工业用水水量',
+            value: 'avgIndustryUse'
+          }, {
+            label: '日均城镇公共用水量',
+            value: 'avgCityUse'
+          }, {
+            label: '日均居民生活用水量',
+            value: 'avgCitizenUse'
+          }
+        ]
+      ],
+      waterTYpes: [],
+      result: []
     }
   },
   methods: {
-    setSelect(event) {
-      let element = event.target
+    setFirstSeletion() {
+      this.selectedIndexes.second = -1
+    },
+    getWaterTypes(types) {
+      this.waterTYpes = types
+    },
+    sendToResult() {
+      this.waterTYpes.forEach(value => {
+        this.result.push({
+          areaType: this.selectedValues.first,
+          areaName: this.selectedValues.second,
+          waterType: value
+        })
+      })
 
-      element.classList.toggle('selected')
+      this.clearSelection()
+      this.$root.bus.$emit('selectionComplete')
+    },
+    clearSelection() {
+      this.selectedIndexes = {
+        first: -1,
+        second: -1
+      }
+      this.waterTYpes = []
+    }
+  },
+  computed: {
+    firstTypeIndex() {
+      return this.selectedIndexes.first === -1 ? 0 : this.selectedIndexes.first
+    },
+    secondTypeIndex() {
+      return this.selectedIndexes.first === 2 ? 1 : 0
+    },
+    selectedValues() {
+      let firstValue = this.selectedIndexes.first === -1 ? '' : this.option[this.selectedIndexes.first].value
+      let secondValue = this.selectedIndexes.second === -1 ? '' : this.option[this.firstTypeIndex].children[this.selectedIndexes.second].value
+
+      return {
+        first: firstValue,
+        second: secondValue
+      }
+    },
+    cannotSend() {
+      return this.selectedIndexes.first === -1 || this.selectedIndexes.second === -1 || this.waterTYpes.length === 0
+    }
+  },
+  watch: {
+    result(value) {
+      this.$root.bus.$emit('resultChange', value)
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
 .muti-select-tab {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.selector-panel {
-  display: inline-block;
-  height: 40vh;
-  width: 10vw;
-  margin: 0 5px;
-  border: 1px solid #e6ebf5;
-  border-radius: 5px;
-  box-sizing: border-box;
-  /* box-shadow: inset 1px 1px 2px #000, inset -1px -1px 2px #000; */
-}
-.selector-panel ol {
-  list-style: none;
-  padding-left: 0;
-}
-.selector-item:hover {
-  cursor: pointer;
-  background-color: #f5f7fa;
-}
-.selector-item.selected {
-  color: #409eff;
 }
 </style>

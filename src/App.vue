@@ -5,6 +5,7 @@
         <sider></sider>
       </el-aside>
       <el-main>
+        <DraggablePanel/>
         <graph></graph>
         <map-chart></map-chart>
       </el-main>
@@ -16,12 +17,14 @@
 import Sider from './components/Sider'
 import MapChart from './components/MapChart'
 import Graph from './components/Graph'
+import DraggablePanel from './components/DraggablePanel'
 export default {
   name: 'app',
   components: {
     'sider': Sider,
     'map-chart': MapChart,
-    'graph': Graph
+    'graph': Graph,
+    DraggablePanel
   }
 }
 </script>
