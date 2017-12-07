@@ -1,102 +1,140 @@
 <template>
-  <div id="map-chart" :style="{width: '600px', height: '700px'}">
+  <div>
+    <div id="map-chart"
+      :style="{width: '1200px', height: '700px'}">
+    </div>
+    <el-radio-group v-model="lineType"
+      class="lineSelector">
+      <el-radio label="sh">行政区边界</el-radio>
+      <el-radio label="newCity">新市镇边界</el-radio>
+    </el-radio-group>
   </div>
 </template>
 
 <script>
 import echarts from 'echarts'
-import { getMapData } from '../api/mapData'
-import { extract } from '../utils/extract'
-import { getMapChartOpt } from '../utils/chart'
-import { range } from '../utils/map'
+import { jzJson } from '../api/jz'
+import { gyJson } from '../api/gy'
+import { getMapChartOpt, getLineData } from '../utils/chart'
+import { getJZWater } from '../api/getDailyData'
+import { getJZIndicator, getGYIndicator } from '../api/getMapData.js'
 
 export default {
   name: 'mapChart',
+  props: {
+    chartParams: {
+      type: Object
+    }
+  },
   data() {
     return {
-      msg: 'Welcome to Your Vue.js App',
-      chart: ''
+      chart: '',
+      lineType: 'sh',
+      chartOption: null
     }
   },
   mounted() {
     this.drawMap()
   },
   created() {
-    this.$root.bus.$on('changeMap', (value) => {
-      let type = value
-      this.changeMap(type)
+    this.$root.bus.$on('changeMap', (themeType, mapType) => {
+      this.changeMap(themeType, mapType)
     })
   },
-  // 在组件销毁时别忘了解除事件绑定
-  beforeDestroy() {
-    this.$root.bus.$off('changeMap')
+  watch: {
+    lineType: function (newLineType) {
+      let lines = getLineData(newLineType)
+      this.chartOption.series[0].data = lines
+      this.chart.setOption(this.chartOption)
+    }
   },
   methods: {
     drawMap() {
-      let mapType = '街道'
       // 基于准备好的dom，初始化echarts实例
+      let themeType = '用水量'
+      let waterType = '3'
+      let mapType = 'JZ'
       let mapChart = echarts.init(document.getElementById('map-chart'))
       this.chart = mapChart
-      getMapData(mapType).then(responese => {
-        let geojson = responese.data
-        let chartData = extract(geojson, [0, 200])
-        echarts.registerMap('SH', geojson)
+
+      // Promise.all([getMapGeojson(), getMapData()])
+      //   .then(value => {
+      //     console.log(value)
+      //   })
+      let lines = getLineData(this.lineType)
+
+      getJZWater(waterType).then(responese => {
+        let chartData = responese.data
+
+        echarts.registerMap(mapType, jzJson)
         // 绘制图表
-        mapChart.setOption({
-          backgroundColor: '#404a59',
-          title: {
-            text: '上海街镇日均用水量（2011）',
-            subtext: '数据来自水务规划院',
-            sublink: 'http://www.shanghaiwater.gov.cn/shwaterweb/gb/sswj/n55/n102/index.html',
-            left: 'center',
-            textStyle: {
-              color: '#fff'
-            }
-          },
-          tooltip: {
-            trigger: 'item',
-            formatter: '{b}<br/>{c} (万立方米)'
-          },
-          visualMap: {
-            pieces: [
-              { min: 150 },
-              { min: 130, max: 150 },
-              { min: 110, max: 130 },
-              { min: 90, max: 110 },
-              { min: 0, max: 90 }
-            ],
-            color: ['#d94e5d', '#eac736', '#50a3ba'],
-            textStyle: {
-              color: '#fff'
-            }
-          },
-          series: [
-            {
-              name: '上海街镇日均用水量',
-              type: 'map',
-              roam: true,
-              mapType: 'SH', // 自定义扩展图表类型
-              data: chartData
-            }
-          ]
-        })
+        this.chartOption = getMapChartOpt(waterType, themeType, mapType, chartData, lines)
+        this.chart.setOption(this.chartOption, true)
       })
     },
-    changeMap(type) {
-      let mapType = type === 'industry' ? '工业' : '街道'
-      getMapData(mapType).then(responese => {
-        let geojson = responese.data
-        let chartData = extract(geojson, range[type])
-        let mapStr = mapType === '街道' ? 'SH' : 'GY'
-        echarts.registerMap(mapStr, geojson)
-        let option = getMapChartOpt(type, mapStr, chartData)
-        this.chart.setOption(option, true)
-      })
+    changeMap(themeType, waterType) {
+      let geoJson
+      let mapType
+      if (waterType === 'avgIndustryUseIndicator') {
+        geoJson = gyJson
+        mapType = 'GY'
+      } else {
+        geoJson = jzJson
+        mapType = 'JZ'
+      }
+      let lines = getLineData(this.lineType)
+      if (themeType === '用水量') {
+        getJZWater(waterType).then(responese => {
+          let chartData = responese.data
+          echarts.registerMap(mapType, geoJson)
+          this.chartOption = getMapChartOpt(waterType, themeType, mapType, chartData, lines)
+          this.chart.setOption(this.chartOption, true)
+        })
+      } else if (waterType !== 'avgIndustryUseIndicator') {
+        getJZIndicator(waterType).then(responese => {
+          let chartData = responese.data
+          echarts.registerMap(mapType, geoJson)
+          this.chartOption = getMapChartOpt(waterType, themeType, mapType, chartData, lines)
+          this.chart.setOption(this.chartOption, true)
+        })
+      } else {
+        getGYIndicator().then(responese => {
+          let chartData = responese.data
+          chartData = chartData.map(item => {
+            if (item.value === 0) {
+              return {
+                value: '-',
+                name: item.name
+              }
+            } else {
+              return item
+            }
+          })
+          echarts.registerMap(mapType, geoJson)
+          this.chartOption = getMapChartOpt(waterType, themeType, mapType, chartData, lines)
+          this.chart.setOption(this.chartOption, true)
+        })
+      }
     }
   }
 }
 </script>
 
 <style>
-
+.lineSelector {
+  position: absolute;
+  top: 5vh;
+  right: 5vw;
+  /* background-color: #fff; */
+  /* border: 1px solid #e5e5e5; */
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+.lineSelector .el-radio {
+  display: block;
+  margin: 5px 0;
+}
+.lineSelector .el-radio + .el-radio {
+  margin: 0;
+}
 </style>

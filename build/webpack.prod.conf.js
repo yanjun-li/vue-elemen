@@ -10,9 +10,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 
-const env = process.env.NODE_ENV === 'testing'
-  ? require('../config/test.env')
-  : config.build.env
+const env = process.env.NODE_ENV === 'testing' ?
+  require('../config/test.env') :
+  config.build.env
 
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -35,7 +35,9 @@ const webpackConfig = merge(baseWebpackConfig, {
     // UglifyJs do not support ES6+, you can also use babel-minify for better treeshaking: https://github.com/babel/minify
     new webpack.optimize.UglifyJsPlugin({
       compress: {
-        warnings: false
+        warnings: false,
+        drop_debugger: true,
+        drop_console: true
       },
       sourceMap: true
     }),
@@ -54,9 +56,9 @@ const webpackConfig = merge(baseWebpackConfig, {
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
-      filename: process.env.NODE_ENV === 'testing'
-        ? 'index.html'
-        : config.build.index,
+      filename: process.env.NODE_ENV === 'testing' ?
+        'index.html' :
+        config.build.index,
       template: 'index.html',
       inject: true,
       minify: {
@@ -92,13 +94,11 @@ const webpackConfig = merge(baseWebpackConfig, {
       chunks: ['vendor']
     }),
     // copy custom static assets
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, '../static'),
-        to: config.build.assetsSubDirectory,
-        ignore: ['.*']
-      }
-    ])
+    new CopyWebpackPlugin([{
+      from: path.resolve(__dirname, '../static'),
+      to: config.build.assetsSubDirectory,
+      ignore: ['.*']
+    }])
   ]
 })
 

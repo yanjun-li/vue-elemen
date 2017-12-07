@@ -2,12 +2,20 @@
   <div id="app">
     <el-container>
       <el-aside width="300px">
-        <sider></sider>
+        <Sider @createChart="addChart" />
       </el-aside>
       <el-main>
-        <DraggablePanel/>
-        <graph></graph>
-        <map-chart></map-chart>
+        <DraggablePanel v-for="chart in chartList"
+          :key="chart.id"
+          :pos="chart.pos"
+          :id="chart.id"
+          :maxZIndex="maxZIndex"
+          @closePanel="removeChart"
+          @maxZIndexIncrease="maxZIndexIncrease">
+          <Graph :chartParams="chart.chartParams"
+            :id="chart.id" />
+        </DraggablePanel>
+        <MapChart/>
       </el-main>
     </el-container>
   </div>
@@ -18,13 +26,52 @@ import Sider from './components/Sider'
 import MapChart from './components/MapChart'
 import Graph from './components/Graph'
 import DraggablePanel from './components/DraggablePanel'
+
+let getRandomPos = () => {
+  let top = Math.round(Math.random() * (window.innerHeight - 700)) + 'px'
+  let left = Math.round(Math.random() * (window.innerWidth - 600)) + 'px'
+  return {
+    top,
+    left
+  }
+}
 export default {
   name: 'app',
   components: {
-    'sider': Sider,
-    'map-chart': MapChart,
-    'graph': Graph,
+    Sider,
+    MapChart,
+    Graph,
     DraggablePanel
+  },
+  data() {
+    return {
+      chartList: [
+      ],
+      maxZIndex: 1,
+      borderType: 'sh'
+    }
+  },
+  computed: {
+
+  },
+  methods: {
+    addChart(chartObj) {
+      console.log(chartObj)
+      this.chartList.push({
+        id: this.chartList.length,
+        pos: getRandomPos(),
+        chartParams: chartObj
+      })
+    },
+    removeChart(id) {
+      let removeIndex = this.chartList.findIndex(chart => {
+        return chart.id === id
+      })
+      this.chartList.splice(removeIndex, 1)
+    },
+    maxZIndexIncrease() {
+      this.maxZIndex++
+    }
   }
 }
 </script>
@@ -56,10 +103,12 @@ body {
   width: 100%;
   height: 100%;
 }
-#graph {
-  float: left;
+
+.el-main {
+  background-color: rgb(243, 243, 243);
+  position: relative;
 }
 #map-chart {
-  float: right;
+  /* float: right; */
 }
 </style>

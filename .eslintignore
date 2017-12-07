@@ -1,2 +1,7 @@
 build/*.js
 config/*.js
+src/api/sh.js
+src/api/jz.js
+src/api/sh_line.js
+src/api/newCity_line.js
+src/api/gy.js

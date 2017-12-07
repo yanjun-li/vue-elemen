@@ -1,48 +1,94 @@
 <template>
-  <div id="graph" :style="{width: '600px', height: '700px'}">
+  <div class="graph"
+    :style="{width: '600px', height: '700px'}">
   </div>
 </template>
 
 <script>
 import echarts from 'echarts'
-import { getBarData } from '../api/barData'
-import { getDailyWater } from '../api/testData'
-import { getBarChartOpt, getYearRange } from '../utils/chart'
+import { getDailyWater } from '../api/getDailyData'
+import { getYearRange, getChartTitle, getChartLegend, getBarChartOpt, getLineChartOpt, getUnit } from '../utils/chart'
 
+function arrayDivide(arr, divideArr) {
+  let result = []
+  arr.forEach((value, index) => {
+    let rstValue = arr[index] / divideArr[index] * 100
+    result.push(rstValue.toFixed(2))
+  })
+  return result
+}
+function arraySum(arr1, arr2) {
+  let result = []
+  arr1.forEach((value, index) => {
+    let rstValue = arr1[index] + arr2[index]
+    result.push(rstValue)
+  })
+  return result
+}
+let areaTypeMacth = {
+  sh: '全市',
+  gsfq: '供水分区',
+  xzq: '行政区'
+}
+let waterTypesMatch = {
+  maxUse: '最高日供水量',
+  avgSupply: '日均供水量',
+  avgUse: '日均用水水量',
+  avgIndustryUse: '日均工业用水水量',
+  avgCityUse: '日均城镇公共用水量',
+  avgCitizenUse: '日均居民生活用水量'
+}
 export default {
   name: 'graph',
-  data() {
-    return {
-      msg: 'Welcome to Your Vue.js App',
-      chart: ''
+  props: {
+    chartParams: {
+      type: Object
+    },
+    id: {
+      type: Number
     }
   },
-  mounted() {
-    this.drawGraph()
+  data() {
+    return {
+      chart: null
+    }
   },
-  created() {
-    this.$root.bus.$on('changeGraph', (value) => {
-      console.log(value)
-      let { area, chartType, range } = value
-      range = getYearRange(range[0], range[1])
-      this.changeGraph(area, chartType, range)
-    })
+  computed: {
+
+  },
+  mounted() {
+    this.drawGraph(this.chartParams)
   },
   // 在组件销毁时别忘了解除事件绑定
   beforeDestroy() {
     this.$root.bus.$off('changeGraph')
   },
   methods: {
-    drawGraph() {
-      let dataType = 'sh'
-      let [start, end] = ['2000', '2010']
+    drawGraph({ chartType, themeType, startYear, endYear, waterThemes }) {
+      let areaTypeStr = areaTypeMacth[waterThemes[0].areaType]
+
+      let chartTitle = getChartTitle(chartType, themeType, areaTypeStr)
+
+      let queryTales = {
+        areaTypes: [],
+        areaNames: []
+      }
+      waterThemes.forEach(waterTheme => {
+        if (!queryTales.areaNames.includes(waterTheme.areaName)) {
+          queryTales.areaNames.push(waterTheme.areaName)
+          queryTales.areaTypes.push(waterTheme.areaType)
+        }
+      })
+
+      let areaTypes = queryTales.areaTypes.join(',')
+      let areaNames = queryTales.areaNames.join(',')
       // 基于准备好的dom，初始化echarts实例
-      let graph = echarts.init(document.getElementById('graph'))
+      let graph = echarts.init(this.$el)
       this.chart = graph
-      // let range = getYearRange(2012, 2015)
-      getDailyWater(dataType, start, end).then(responese => {
+      let xAxisRange = getYearRange(startYear, endYear)
+      getDailyWater(areaTypes, areaNames, themeType, startYear, endYear).then(responese => {
         let data = responese.data
-        // console.log(data)
+        console.log(data)
         function extract(data) {
           let obj = {}
           data.forEach(item => {
@@ -57,114 +103,77 @@ export default {
           })
           return obj
         }
-        let obj = extract(data)
-        console.log(obj)
-        let { maxUse, avgSupply, avgUse, avgIndustryUse, avgCityUse, avgCitizenUse, time: range } = obj
-        // 绘制图表
-        graph.setOption({
-          backgroundColor: '#404a59',
-          title: {
-            text: '上海全市日均水量',
-            subtext: '数据来自水务规划院',
-            sublink: 'http://www.shanghaiwater.gov.cn/shwaterweb/gb/sswj/n55/n102/index.html',
-            left: 'center',
-            textStyle: {
-              color: '#fff'
-            }
-          },
-          grid: {
-            bottom: '15%'
-          },
-          toolbox: {
-            show: true,
-            feature: {
-              dataView: {
-                show: false,
-                readOnly: true
+
+        let tables = {}
+        queryTales.areaNames.forEach(item => {
+          let dataTable = extract(data[item])
+          tables[item] = dataTable
+        })
+
+        let chartOption
+        if (chartType === 'line') {
+          let series = []
+          let legends = []
+          console.log(waterThemes)
+          waterThemes.forEach(waterTheme => {
+            let legendStr = getChartLegend(waterTheme.areaName, waterTheme.waterType)
+            series.push({
+              name: legendStr,
+              type: chartType,
+              data: tables[waterTheme.areaName][waterTheme.waterType],
+              markPoint: {
+                data: [
+                  { type: 'max', name: '最大值' },
+                  { type: 'min', name: '最小值' }
+                ]
               },
-              restore: {
-                show: true
-              },
-              saveAsImage: {
-                show: true
+              markLine: {
+                data: [
+                  { type: 'average', name: '平均值' }
+                ]
               }
+            })
+            legends.push(legendStr)
+          })
+          let unit = getUnit(waterThemes[0]['waterType'])
+          chartOption = getLineChartOpt(chartTitle, unit, xAxisRange, legends, series)
+        } else if (chartType === 'bar') {
+          let type = waterThemes[0].type
+          let table = tables[waterThemes[0].areaName]
+          if (type === 'multiTypeCompare') {
+            data = {
+              'avgCitizenUse': [],
+              'avgCityUse': [],
+              'avgIndustryUse': []
             }
-          },
-          legend: {
-            data: [
-              '最高日供水量',
-              '日均供水量',
-              '日均用水水量',
-              '日均工业用水水量',
-              '日均城镇公共用水量',
-              '日均居民生活用水量'
-            ],
-            textStyle: {
-              color: '#fff'
-            },
-            bottom: '20px'
-          },
-          tooltip: {
-            trigger: 'item',
-            formatter: '{b} {a}年<br/>{c}(万m<sup>3</sup>)'
-          },
-          xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: range
-          },
-          yAxis: {
-            type: 'value',
-            axisLabel: {
-              formatter: '{value}'
+            let sumArr = []
+            table['avgCitizenUse'].forEach((value, index) => {
+              let sum = table['avgCitizenUse'][index] + table['avgCityUse'][index] + table['avgIndustryUse'][index]
+              sumArr.push(sum)
+            })
+            Object.keys(data).forEach(key => {
+              data[key] = arrayDivide(table[key], sumArr)
+            })
+          } else {
+            data = {
+              'ss': [],
+              'jq': []
             }
-          },
-          textStyle: {
-            color: '#fff'
-          },
-          series: [
-            {
-              name: '最高日供水量',
-              type: 'line',
-              data: maxUse
-            }, {
-              name: '日均供水量',
-              type: 'line',
-              data: avgSupply
-            }, {
-              name: '日均用水水量',
-              type: 'line',
-              data: avgUse
-            }, {
-              name: '日均工业用水水量',
-              type: 'line',
-              data: avgIndustryUse
-            }, {
-              name: '日均城镇公共用水量',
-              type: 'line',
-              data: avgCityUse
-            }, {
-              name: '日均居民生活用水量',
-              type: 'line',
-              data: avgCitizenUse
-            }
-          ]
-        })
-      })
-    },
-    changeGraph(area, chartType, range) {
-      let dataType = 'sh'
-      getBarData(dataType).then(responese => {
-        let data = responese.data
-        let industryUse = []
-        data.cityUse.forEach((val, index) => {
-          industryUse.push(100 - val - data.citizenUse[index])
-        })
-        data.industryUse = industryUse
-        console.log(data)
-        let title = '全市水量分类用水量比例图'
-        let option = getBarChartOpt(title, range, data)
-        this.chart.setOption(option, true)
+            let arrData = []
+            waterThemes.forEach(waterTheme => {
+              arrData.push(tables[waterTheme.areaName][waterTheme.waterType])
+            })
+            let sumArr = arraySum(arrData[0], arrData[1])
+            data['ss'] = arrayDivide(arrData[0], sumArr)
+            data['jq'] = arrayDivide(arrData[1], sumArr)
+
+            chartTitle = `上海市供水分区${waterTypesMatch[waterThemes[0].waterType]}对比图`
+          }
+
+          chartOption = getBarChartOpt(chartTitle, type, xAxisRange, data)
+        }
+
+        graph.setOption(chartOption)
       })
     }
   }

@@ -14,18 +14,12 @@
 </template>
 
 <script>
+import { waterTypes } from '../utils/config'
 export default {
   data() {
     return {
       selectedIndex: -1,
-      waterTypes: {
-        maxUse: '最高日供水量',
-        avgSupply: '日均供水量',
-        avgUse: '日均用水水量',
-        avgIndustryUse: '日均工业用水水量',
-        avgCityUse: '日均城镇公共用水量',
-        avgCitizenUse: '日均居民生活用水量'
-      }
+      waterTypes
     }
   },
   props: ['option'],
@@ -46,7 +40,7 @@ export default {
 .selector-panel {
   display: inline-block;
   height: 40vh;
-  width: 10vw;
+  width: 18vw;
   margin: 0 5px;
   border: 1px solid #e6ebf5;
   border-radius: 5px;

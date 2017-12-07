@@ -1,56 +1,75 @@
 <template>
   <div class="draggabel-panel"
-    :style="style"
-    v-drag="greet">
-
+    :style="[pos,zIndexStyle]"
+    v-drag="resetPos"
+    @click="setZIndex">
+    <i class="el-icon-close close-btn"
+      @click="closePanel"></i>
+    <slot>预置</slot>
   </div>
 </template>
 
 <script>
+
 export default {
   directives: {
-    drag: {
-      bind(el, binding) {
-        el.onmousedown = event => {
-          // 鼠标按下，计算当前元素距离可视区的距离
-          let disX = event.clientX - el.offsetLeft
-          let disY = event.clientY - el.offsetTop
-          document.onmousemove = function (e) {
-            // 通过事件委托，计算移动的距离
-            let l = e.clientX - disX
-            let t = e.clientY - disY
-            // 移动当前元素
-            el.style.left = l + 'px'
-            el.style.top = t + 'px'
-            // 将此时的位置传出去
-            binding.value({ x: e.pageX, y: e.pageY })
+    drag(el, binding) {
+      let startX
+      let startY
+      let viewWidth = window.innerWidth
+      let viewHight = window.innerHeight
+      el.onmousedown = event => {
+        // 鼠标按下，计算当前元素距离可视区的距离
+        startX = event.clientX - el.offsetLeft
+        startY = event.clientY - el.offsetTop
+
+        document.onmousemove = event => {
+          // 限制移动距离
+          let t = event.clientY - startY
+          let l = event.clientX - startX
+          if (t > 0 && t < viewHight & l > 0 && l < viewWidth) {
+            binding.value({ top: t, left: l })
           }
-          document.onmouseup = function (e) {
-            document.onmousemove = null
-            document.onmouseup = null
-          }
+        }
+        document.onmouseup = event => {
+          document.onmousemove = null
         }
       }
     }
   },
+  props: {
+    pos: {
+      type: Object
+    },
+    id: {
+      type: Number
+    },
+    maxZIndex: {
+      type: Number
+    }
+  },
   data() {
     return {
-      val: '123',
-      style: {
-        width: '100px',
-        height: '100px',
-        background: 'aqua',
-        position: 'absolute',
-        right: '30px',
-        top: 0
+      zIndexStyle: {
+        zIndex: this.maxZIndex
       }
     }
   },
+  computed: {
+
+  },
   methods: {
     // 接受传来的位置数据，并将数据绑定给data下的val
-    greet(val) {
-      this.val = val
-      console.log(val)
+    resetPos(pos) {
+      this.pos.top = pos.top + 'px'
+      this.pos.left = pos.left + 'px'
+    },
+    closePanel() {
+      this.$emit('closePanel', this.id)
+    },
+    setZIndex() {
+      this.zIndexStyle.zIndex = this.maxZIndex
+      this.$emit('maxZIndexIncrease')
     }
   }
 }
@@ -58,6 +77,25 @@ export default {
 
 <style>
 .draggabel-panel {
-  /* background: #000 */
+  width: 600px;
+  height: 700px;
+  position: absolute;
+
+  border-radius: 4px;
+  border: 1px solid #e6ebf5;
+  background-color: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  color: #2d2f33;
+}
+.close-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 10;
+}
+.close-btn:hover {
+  color: #409eff;
+  cursor: pointer;
 }
 </style>

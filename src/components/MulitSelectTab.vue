@@ -7,7 +7,7 @@
     <MulitSelectPanel :option="option[firstTypeIndex].children"
       :selectedIndex.sync="selectedIndexes.second"
       level="second" />
-    <SelectorPanelMulti :option="lv3Option[secondTypeIndex]"
+    <SelectorPanelMulti :option="multiSelectOption.length === 2?multiSelectOption[secondTypeIndex]:multiSelectOption"
       @waterTypeChange="getWaterTypes" />
     <el-button type="primary"
       icon="el-icon-arrow-right"
@@ -30,93 +30,25 @@ export default {
     SelectorPanelMulti,
     SelectorPanelResult
   },
+  created() {
+    this.$root.bus.$on('chartCreated', value => {
+      this.result = []
+    })
+  },
+  props: {
+    option: {
+      type: Array
+    },
+    multiSelectOption: {
+      type: Array
+    }
+  },
   data() {
     return {
       selectedIndexes: {
         first: -1,
         second: -1
       },
-      option: [
-        {
-          label: '全市',
-          value: 'sh',
-          children: [
-            {
-              label: '上海',
-              value: '上海'
-            }
-          ]
-        }, {
-          label: '供水分区',
-          value: 'gsfq',
-          children: [
-            {
-              label: '市属区域',
-              value: '市属区域'
-            }, {
-              label: '郊区',
-              value: '郊区'
-            }
-          ]
-        }, {
-          label: '行政区',
-          value: 'xzq',
-          children: [
-            { label: '宝山区', value: '宝山区' },
-            { label: '崇明区', value: '崇明区' },
-            { label: '奉贤区', value: '奉贤区' },
-            { label: '嘉定区', value: '嘉定区' },
-            { label: '金山区', value: '金山区' },
-            { label: '闵行区', value: '闵行区' },
-            { label: '浦东北片', value: '浦东北片' },
-            { label: '浦东南片', value: '浦东南片' },
-            { label: '浦西中心城北四区', value: '浦西中心城北四区' },
-            { label: '浦西中心城南四区', value: '浦西中心城南四区' },
-            { label: '青浦区', value: '青浦区' },
-            { label: '松江区', value: '松江区' }
-          ]
-        }
-      ],
-      lv3Option: [
-        [
-          {
-            label: '最高日供水量',
-            value: 'maxUse'
-          }, {
-            label: '日均供水量',
-            value: 'avgSupply'
-          }, {
-            label: '日均用水水量',
-            value: 'avgUse'
-          }, {
-            label: '日均工业用水水量',
-            value: 'avgIndustryUse'
-          }, {
-            label: '日均城镇公共用水量',
-            value: 'avgCityUse'
-          }, {
-            label: '日均居民生活用水量',
-            value: 'avgCitizenUse'
-          }
-        ], [
-          {
-            label: '日均供水量',
-            value: 'avgSupply'
-          }, {
-            label: '日均用水水量',
-            value: 'avgUse'
-          }, {
-            label: '日均工业用水水量',
-            value: 'avgIndustryUse'
-          }, {
-            label: '日均城镇公共用水量',
-            value: 'avgCityUse'
-          }, {
-            label: '日均居民生活用水量',
-            value: 'avgCitizenUse'
-          }
-        ]
-      ],
       waterTYpes: [],
       result: []
     }
@@ -154,6 +86,15 @@ export default {
     },
     secondTypeIndex() {
       return this.selectedIndexes.first === 2 ? 1 : 0
+    },
+    multiSelectOptionObj() {
+      //  初始不响应？
+      // return this.multiSelectOption
+      if (this.multiSelectOption.length === 2) {
+        return this.multiSelectOption[this.secondTypeIndex]
+      } else if (this.multiSelectOption.length === 1) {
+        return this.multiSelectOption
+      }
     },
     selectedValues() {
       let firstValue = this.selectedIndexes.first === -1 ? '' : this.option[this.selectedIndexes.first].value
