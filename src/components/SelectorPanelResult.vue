@@ -41,6 +41,7 @@ export default {
   display: inline-block;
   height: 40vh;
   width: 18vw;
+  min-width: 200px;
   margin: 0 5px;
   border: 1px solid #e6ebf5;
   border-radius: 5px;

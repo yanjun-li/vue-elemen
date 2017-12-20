@@ -1,6 +1,6 @@
 <template>
   <div class="draggabel-panel"
-    :style="[pos,zIndexStyle]"
+    :style="[pos,zIndexStyle,whStyle]"
     v-drag="resetPos"
     @click="setZIndex">
     <i class="el-icon-close close-btn"
@@ -52,6 +52,9 @@ export default {
     return {
       zIndexStyle: {
         zIndex: this.maxZIndex
+      },
+      whStyle: {
+        heiht: `${window.innerHeight - 100}px`
       }
     }
   },
@@ -78,7 +81,7 @@ export default {
 <style>
 .draggabel-panel {
   width: 600px;
-  height: 700px;
+  /* height: 700px; */
   position: absolute;
 
   border-radius: 4px;

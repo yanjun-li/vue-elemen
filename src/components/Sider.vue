@@ -3,7 +3,8 @@
     <el-tabs type="border-card"
       v-model="themeType">
       <el-tab-pane label="用水量"
-        name="用水量">
+        name="用水量"
+        style="height:100%;">
         <el-form :label-position="labelPosition"
           label-width="85px"
           :model="waterForm"
@@ -563,5 +564,11 @@ export default {
 }
 .map-select .el-radio.is-bordered + .el-radio.is-bordered {
   margin-left: 0;
+}
+.sider .el-tabs__content {
+  height: 700px;
+}
+.map-select {
+  /* display: none; */
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="graph"
-    :style="{width: '600px', height: '700px'}">
+    :style="{width: '600px'}">
   </div>
 </template>
 
@@ -83,6 +83,7 @@ export default {
       let areaTypes = queryTales.areaTypes.join(',')
       let areaNames = queryTales.areaNames.join(',')
       // 基于准备好的dom，初始化echarts实例
+      this.$el.style.height = window.innerHeight - 50 + 'px'
       let graph = echarts.init(this.$el)
       this.chart = graph
       let xAxisRange = getYearRange(startYear, endYear)
@@ -117,10 +118,16 @@ export default {
           console.log(waterThemes)
           waterThemes.forEach(waterTheme => {
             let legendStr = getChartLegend(waterTheme.areaName, waterTheme.waterType)
+
+            let nullCount = Number.parseInt(tables[waterTheme.areaName]['time']) - Number.parseInt(startYear)
+            let nullArr = Array.from({ length: nullCount }, (v, i) => '-')
+            let dataArr = nullArr.concat(tables[waterTheme.areaName][waterTheme.waterType])
+            console.log(nullCount)
+            console.log(nullArr)
             series.push({
               name: legendStr,
               type: chartType,
-              data: tables[waterTheme.areaName][waterTheme.waterType],
+              data: dataArr,
               markPoint: {
                 data: [
                   { type: 'max', name: '最大值' },
@@ -135,11 +142,15 @@ export default {
             })
             legends.push(legendStr)
           })
+
           let unit = getUnit(waterThemes[0]['waterType'])
           chartOption = getLineChartOpt(chartTitle, unit, xAxisRange, legends, series)
         } else if (chartType === 'bar') {
           let type = waterThemes[0].type
           let table = tables[waterThemes[0].areaName]
+          let nullCount = Number.parseInt(table['time']) - Number.parseInt(startYear)
+          let nullArr = Array.from({ length: nullCount }, (v, i) => '-')
+
           if (type === 'multiTypeCompare') {
             data = {
               'avgCitizenUse': [],
@@ -152,7 +163,7 @@ export default {
               sumArr.push(sum)
             })
             Object.keys(data).forEach(key => {
-              data[key] = arrayDivide(table[key], sumArr)
+              data[key] = nullArr.concat(arrayDivide(table[key], sumArr))
             })
           } else {
             data = {
@@ -164,8 +175,8 @@ export default {
               arrData.push(tables[waterTheme.areaName][waterTheme.waterType])
             })
             let sumArr = arraySum(arrData[0], arrData[1])
-            data['ss'] = arrayDivide(arrData[0], sumArr)
-            data['jq'] = arrayDivide(arrData[1], sumArr)
+            data['ss'] = nullArr.concat(arrayDivide(arrData[0], sumArr))
+            data['jq'] = nullArr.concat(arrayDivide(arrData[1], sumArr))
 
             chartTitle = `上海市供水分区${waterTypesMatch[waterThemes[0].waterType]}对比图`
           }

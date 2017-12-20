@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-let url = 'http://localhost/ws_service/'
-// let url = 'http://localhost:60186/'
+let url = 'http://114.141.185.34:8088/ws_service/'
+// let url = 'http://localhost/ws_service/'
 const service = axios.create({
   // baseURL: process.env.BASE_API, // api的base_url
   baseURL: url, // api的base_url

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="map-chart"
-      :style="{width: '1200px', height: '700px'}">
+      :style="{width: width, height: height}">
     </div>
     <el-radio-group v-model="lineType"
       class="lineSelector">
@@ -30,11 +30,23 @@ export default {
     return {
       chart: '',
       lineType: 'sh',
-      chartOption: null
+      chartOption: null,
+      width: '',
+      height: ''
     }
   },
   mounted() {
     this.drawMap()
+    window.onresize = () => {
+      let mapWrap = document.getElementById('map-chart')
+      mapWrap.style.width = `${window.innerWidth - 320}px`
+      mapWrap.style.height = `${window.innerHeight - 50}px`
+      // this.chart.resize({
+      //   width: `${window.innerWidth - 320}px`,
+      //   height: `${window.innerHeight - 50}px`
+      // })
+      this.chart.resize()
+    }
   },
   created() {
     this.$root.bus.$on('changeMap', (themeType, mapType) => {
@@ -54,7 +66,10 @@ export default {
       let themeType = '用水量'
       let waterType = '3'
       let mapType = 'JZ'
-      let mapChart = echarts.init(document.getElementById('map-chart'))
+      let mapWrap = document.getElementById('map-chart')
+      mapWrap.style.width = `${window.innerWidth - 320}px`
+      mapWrap.style.height = `${window.innerHeight - 50}px`
+      let mapChart = echarts.init(mapWrap)
       this.chart = mapChart
 
       // Promise.all([getMapGeojson(), getMapData()])
@@ -125,8 +140,6 @@ export default {
   position: absolute;
   top: 5vh;
   right: 5vw;
-  /* background-color: #fff; */
-  /* border: 1px solid #e5e5e5; */
   border-radius: 5px;
   padding: 5px 10px;
 }

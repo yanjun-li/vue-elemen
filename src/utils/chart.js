@@ -57,19 +57,19 @@ function getUnit(waterType) {
       unit = ''
       break
     case 'avgIndustryUseIndicator':
-      unit = '立方米/平方千米.日'
+      unit = '(立方米/平方千米.日)'
       break
     case 'avgCitizenUseIndicator':
-      unit = '升/人.日'
+      unit = '(升/人.日)'
       break
     case 'avgCityUseIndicator':
-      unit = '升/人.日'
+      unit = '(升/人.日)'
       break
     case 'avgUseIndicator':
-      unit = '升/人.日'
+      unit = '(升/人.日)'
       break
     default:
-      unit = '万立方米'
+      unit = '(万立方米)'
       break
   }
   return unit
@@ -273,7 +273,8 @@ function getBarChartOpt(title, type, range, data) {
       type: 'value',
       axisLabel: {
         formatter: '{value} %'
-      }
+      },
+      max: 100
     },
     textStyle: {
       color: '#000'
@@ -308,7 +309,7 @@ function getMapChartOpt(watertype, themeType, mapType, chartData, lines) {
     }],
     tooltip: {
       trigger: 'item',
-      formatter: `{b}<br/>{c} (${getUnit(watertype)})`
+      formatter: `{b}<br/>{c} ${getUnit(watertype)}`
     },
     toolbox: {
       show: true,

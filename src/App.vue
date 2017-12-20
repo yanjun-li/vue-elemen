@@ -27,9 +27,12 @@ import MapChart from './components/MapChart'
 import Graph from './components/Graph'
 import DraggablePanel from './components/DraggablePanel'
 
+let getRandom = (a, b) => {
+  return Math.random() * (b - a) + a
+}
 let getRandomPos = () => {
-  let top = Math.round(Math.random() * (window.innerHeight - 700)) + 'px'
-  let left = Math.round(Math.random() * (window.innerWidth - 600)) + 'px'
+  let top = Math.round(Math.random() * 45) + 'px'
+  let left = Math.round(getRandom(0, window.innerWidth - 300 - 610)) + 'px'
   return {
     top,
     left
